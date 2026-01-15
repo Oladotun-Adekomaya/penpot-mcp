@@ -8,6 +8,12 @@ WORKDIR /app
 # Copy all files
 COPY . .
 
+# --- SOURCE CODE PATCH (The Fix) ---
+# This command finds "defineConfig({" in the plugin configuration
+# and injects the "host: 0.0.0.0" setting directly into the file.
+# This forces Vite to listen on all interfaces.
+RUN sed -i "s/defineConfig({/defineConfig({ server: { host: '0.0.0.0' }, preview: { host: '0.0.0.0', port: 4400 },/g" penpot-plugin/vite.config.ts
+
 # 1. Install Root Dependencies
 RUN npm install
 
@@ -20,12 +26,8 @@ RUN npm run build:all
 # Expose the three critical ports
 EXPOSE 4400 4401 4402
 
-# --- NETWORKING FIXES ---
-# This is the standard way to tell Vite to expose the server 
-# without breaking the build command.
+# Environment Variables (Keep these as backup)
 ENV HOST=0.0.0.0
-
-# Ensure backend services also listen on all interfaces
 ENV PENPOT_MCP_SERVER_LISTEN_ADDRESS=0.0.0.0
 ENV PENPOT_MCP_PLUGIN_SERVER_LISTEN_ADDRESS=0.0.0.0
 ENV PENPOT_MCP_SERVER_ADDRESS=0.0.0.0
