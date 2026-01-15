@@ -1,7 +1,6 @@
-# Use Node 22 as specified in prerequisites
 FROM node:22-alpine
 
-# Install build dependencies for native modules if needed
+# Install system build dependencies
 RUN apk add --no-cache python3 make g++
 
 WORKDIR /app
@@ -9,16 +8,17 @@ WORKDIR /app
 # Copy all files
 COPY . .
 
-# Install dependencies
+# 1. Install Root Dependencies
 RUN npm install
 
-# Build the project (Typescript compilation)
+# 2. Install Sub-Project Dependencies (CRITICAL FIX)
+# This installs typescript, esbuild, and other tools inside the sub-folders
+RUN npm run install:all
+
+# 3. Build the project
 RUN npm run build:all
 
 # Expose the three critical ports
-# 4400: Plugin Web Server (manifest.json)
-# 4401: MCP HTTP/SSE Server (for Claude/LLM)
-# 4402: WebSocket Server (for Penpot Plugin)
 EXPOSE 4400 4401 4402
 
 # Set host to 0.0.0.0 so Docker can map it
